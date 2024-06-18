@@ -1,0 +1,150 @@
+import customtkinter as ctk
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import pyautogui
+import time
+from datetime import datetime
+
+valores_armazenados = []
+
+def carregar_arquivo():
+    arquivo_path = filedialog.askopenfilename(
+        title="Selecione um arquivo de valores",
+        filetypes=(("Arquivos de Texto", "*.txt"), ("Todos os Arquivos", "*.*"))
+    )
+    
+    if arquivo_path:
+        try:
+            with open(arquivo_path, 'r') as file:
+                valores = file.read().splitlines()
+                valores_armazenados.clear()  # Limpar lista armazenada
+                for valor in valores:
+                    valores_armazenados.append(valor)
+                atualizar_quantidade_valores()
+        except Exception as e:
+            messagebox.showerror("Erro ao carregar arquivo", str(e))
+
+def atualizar_quantidade_valores():
+    quantidade_valores = len(valores_armazenados)
+    label_quantidade.configure(text=f"Quantidade de Valores: {quantidade_valores}")
+
+def minimizar_janela():
+    root.iconify()
+
+def executar_acoes_pyautogui():
+    minimizar_janela()
+
+    for valor in valores_armazenados:
+        pyautogui.moveTo(1097, 248, duration=1)
+        pyautogui.doubleClick()
+        time.sleep(2)
+        pyautogui.typewrite(valor)
+        for _ in range(2):
+            pyautogui.press('tab')
+        time.sleep(1)
+        pyautogui.press('enter')
+        time.sleep(2)
+        
+        try:
+            resultado = pyautogui.locateOnScreen('errosigus.png', confidence=0.9)
+            
+            if resultado:
+                x, y, _, _ = resultado
+                pyautogui.moveTo(x, y)
+                print('Imagem localizada:', x, y)
+            else:
+                print('Imagem não localizada')
+        except ImageNotFoundException:
+            print('Imagem não encontrada. Tratando a exceção...')
+            
+            pyautogui.moveTo(1064, 364, duration=1)
+            pyautogui.doubleClick()
+            pyautogui.typewrite('999999')
+            for _ in range(9):
+                pyautogui.press('tab')
+            data_atual = datetime.now().strftime("%d%m%Y")
+            pyautogui.typewrite(data_atual)
+            pyautogui.moveTo(838, 368, duration=1)
+            pyautogui.doubleClick()
+            time.sleep(1)
+            for _ in range(9):
+                pyautogui.press('tab')
+            pyautogui.typewrite('2')
+            for _ in range(2):
+                pyautogui.press('tab')
+            pyautogui.press('enter')
+            time.sleep(0.15)
+            pyautogui.moveTo(1204, 368, duration=1)
+            pyautogui.doubleClick()
+            pyautogui.moveTo(979, 352, duration=1)
+            pyautogui.doubleClick()
+            time.sleep(1)
+            pyautogui.hotkey('ctrl', 'p')
+            time.sleep(2)
+            pyautogui.press('enter')
+            time.sleep(2)
+
+ctk.set_appearance_mode("dark")  # Modo escuro
+ctk.set_default_color_theme("dark-blue")  # Tema padrão
+
+root = ctk.CTk()
+root.geometry("700x300")  # Aumentei o tamanho para melhor visualização dos componentes
+root.title("NK - Automação SIGUS")
+
+root.configure(bg='#0D0D2B')  # Cor de fundo dark blue purple
+
+def mostrar_tela2():
+    tela1.pack_forget()
+    tela2.pack(fill='both', expand=True)
+
+def atualizar_pontos():
+    current_text = label_aguarde.cget("text")
+    if current_text == "Aguarde...":
+        label_aguarde.configure(text="Aguarde")
+    else:
+        label_aguarde.configure(text=current_text + ".")
+    root.after(500, atualizar_pontos)
+
+tela1 = ctk.CTkFrame(root)
+tela1.pack(fill='both', expand=True)
+
+titulo1 = ctk.CTkLabel(tela1, text="Bem vindo ao Assistente de Faturamento", font=("Calibri", 24), text_color="#FFFFFF")
+titulo1.pack(pady=20)
+
+subtitulo1 = ctk.CTkLabel(tela1, text=("Esta automação foi desenvolvida para auxiliar os faturistas quanto às validações no portal SIGUS.\n"
+                                       "Antes de Executar a Ação, lembre-se de fazer login no site.\n"
+                                       "(Defina os parâmetros de consulta para que a ferramenta opere corretamente)."),
+                         font=("Calibri", 15), text_color="#FFFFFF")
+subtitulo1.pack(pady=20)
+
+label_aguarde = ctk.CTkLabel(tela1, text="Aguarde", font=("Calibri", 15), text_color="#FFFFFF")
+label_aguarde.pack(pady=20)
+
+root.after(500, atualizar_pontos)
+
+root.after(15000, mostrar_tela2)  # Mudar para a tela 2 após 15 segundos
+
+tela2 = ctk.CTkFrame(root)
+
+titulo2 = ctk.CTkLabel(tela2, text="Vamos começar", font=("Calibri", 24), text_color="#FFFFFF")
+titulo2.pack(pady=5)
+
+titulo2_2 = ctk.CTkLabel(tela2, text="Instruções:\n Escolha o Arquivo (ele precisa estar em formato txt).\nLembre-se de deixar a página do SIGUS pronta para validação, antes de clicar em Executar. \n É aconselhável o limite de 100 processos por execução", font=("Calibri", 15), text_color="#FFFFFF")
+titulo2_2.pack(pady=10)
+
+def funcao_botao1():
+    carregar_arquivo()
+
+def funcao_botao2():
+    executar_acoes_pyautogui()
+
+botao1 = ctk.CTkButton(tela2, text="📁 Escolher Arquivo", command=funcao_botao1, width=200, height=40, corner_radius=10, fg_color="#F25C54", hover_color="#F27059")
+botao1.pack(pady=5)
+
+label_quantidade = ctk.CTkLabel(tela2, text="Quantidade de Valores: 0", font=("Calibri", 15), text_color="#FFFFFF")
+label_quantidade.pack(pady=5)
+
+botao2 = ctk.CTkButton(tela2, text="▶ Executar", command=funcao_botao2, width=200, height=40, corner_radius=10, fg_color="#10B981", hover_color="#34D399")
+botao2.pack(pady=5)
+
+root.mainloop()
